@@ -87,7 +87,7 @@ ryoe_lag_r <-
              by = c("rusher_id", "rusher", "season")) |>
   ungroup()
 
-#selecting the two yds per carries collumns and examining correlation
+#selectin the two yds per carries collumns and examining correlation
 ryoe_lag_r |>
   select(yards_per_carry, yards_per_carry_last) |>
   cor(use = "complete.obs")
