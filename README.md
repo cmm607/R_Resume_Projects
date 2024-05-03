@@ -1,5 +1,1 @@
-# Resume_ProjectsCM To share my personal/school projects with possible employers. Thanks for visiting!
-"# R_Resume_projects" 
-"# R_Resume_projects" 
-"# Resume_Projects" 
-"# Resume_Projects" 
+# Displaying my profficiency of analytical modeling and R code through the Football Analytics with Python and R book Chapters and End of Chapter Excersizes
