@@ -80,7 +80,7 @@ ryoe_last_r <-
   rename(ryoe_per_last = ryoe_per,
          yards_per_carry_last = yards_per_carry)
 
-#joining the 2 together
+#join the 2 together
 ryoe_lag_r <-
   ryoe_now_r |>
   inner_join(ryoe_last_r,
