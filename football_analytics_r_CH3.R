@@ -26,7 +26,7 @@ pbp_r_run_avg <-
   group_by(ydstogo) |>
   summarize(ypc = mean(rushing_yards))
 
-#plotting histogram
+#plotting histogram with yards to go and yards per carry
 ggplot(pbp_r_run_avg, aes(x = ydstogo, y = ypc)) +
   geom_point() + 
   theme_bw() +
@@ -87,11 +87,62 @@ ryoe_lag_r <-
              by = c("rusher_id", "rusher", "season")) |>
   ungroup()
 
-#selectin the two yds per carries collumns and examining correlation
+#selecting the two yds per carries columns and examining correlation
 ryoe_lag_r |>
   select(yards_per_carry, yards_per_carry_last) |>
   cor(use = "complete.obs")
 
 ryoe_lag_r |>
+  select(ryoe_per, ryoe_per_last) |>
+  cor(use = "complete.obs")
+
+
+### EXERCISES
+#1. What happens if you repeat the correlation analysis with 100 carries
+#   as the threshold? What happens to the differences in r values?
+
+ryoe_r_Q1 <- 
+  pbp_r_run |>
+  group_by(season, rusher_id, rusher) |>
+  summarize(
+    n=n(),
+    ryoe_total = sum(ryoe),
+    ryoe_per = mean(ryoe),
+    yards_per_carry = mean(rushing_yards)
+  ) |>
+  arrange(-ryoe_total) |>
+  filter(n > 100)
+print(ryoe_r_Q1)
+
+ryoe_r_Q1 |>
+  arrange(-ryoe_per)
+
+#comparing ryoe per carry to traditional yards per carry
+#creating current df to work with
+ryoe_now_r_Q1 <-
+  ryoe_r_Q1 |>
+  select(-n, -ryoe_total)
+
+#creating last seaon df and add 1 to season
+ryoe_last_r_Q1 <-
+  ryoe_r_Q1 |>
+  select(-n, -ryoe_total) |>
+  mutate(season = season +1) |>
+  rename(ryoe_per_last = ryoe_per,
+         yards_per_carry_last = yards_per_carry)
+
+#join the 2 together
+ryoe_lag_r_Q1 <-
+  ryoe_now_r_Q1 |>
+  inner_join(ryoe_last_r_Q1,
+             by = c("rusher_id", "rusher", "season")) |>
+  ungroup()
+
+#selecting the two yds per carries columns and examining correlation
+ryoe_lag_r_Q1 |>
+  select(yards_per_carry, yards_per_carry_last) |>
+  cor(use = "complete.obs")
+
+ryoe_lag_r_Q1 |>
   select(ryoe_per, ryoe_per_last) |>
   cor(use = "complete.obs")
