@@ -86,7 +86,7 @@ ryoe_lag_r <-
   inner_join(ryoe_last_r,
              by = c("rusher_id", "rusher", "season")) |>
   ungroup()
-
+ryoe_lag_r
 #selecting the two yds per carries columns and examining correlation
 ryoe_lag_r |>
   select(yards_per_carry, yards_per_carry_last) |>
@@ -101,6 +101,11 @@ ryoe_lag_r |>
 #1. What happens if you repeat the correlation analysis with 100 carries
 #   as the threshold? What happens to the differences in r values?
 
+# As seen in the code below, the correlation between last years yards per
+# carry and this years compared to the correlation between last years
+# rushing yards over expected with this years is closer when looking at
+# a 100 carry threshold with a 1.43% difference. But rushing yards over
+# expected is still more correlated when looking at the previous year.
 ryoe_r_Q1 <- 
   pbp_r_run |>
   group_by(season, rusher_id, rusher) |>
@@ -146,3 +151,13 @@ ryoe_lag_r_Q1 |>
 ryoe_lag_r_Q1 |>
   select(ryoe_per, ryoe_per_last) |>
   cor(use = "complete.obs")
+
+#Question 2. Assume all of Alstott's carries were on third down and 1
+#yard to go and all of Dunn's carries came on first down and 10 yards
+#to go. Is that enough to explain the discrepancy in their yards per 
+#carry values?
+#Yes, that would be the case because it can be seen in the code above
+#that the linear regression model shows us that yards to go has a 
+#positive intercept in predicting rushing yards. This means that the
+#more yards to there are to go we have a +.13 slope to then be multiplied
+#by the amount of yards to go.
