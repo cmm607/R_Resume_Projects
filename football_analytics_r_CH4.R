@@ -164,3 +164,69 @@ expected_yards_filter <-
 par(mfrow = c(2, 2))
 plot(expected_yards_filter)
 summary(expected_yards_filter)
+
+
+### Excersises 
+#Question 1.
+#Change the carries threshold from 50 carries to 100 carries. Do you still see the same stability differences 
+#that you found in this chapter?
+
+#As seen in the code below, I do not see the same stability difference. Here I see that the yards per carry metric
+#is actually more stable than the rushing yard over expected when accounting for a threshold of 100 carries.
+
+#creating summary table for ryoe totals, means, and yards per carry 
+#and then saving only data from rushers with more than 100 carries
+ryoe_r_Q1 <-
+  pbp_r_run |>
+  group_by(season, rusher_id, rusher) |>
+  summarize(
+    n = n(), ryoe_total = sum(ryoe), ryoe_per = mean(ryoe),
+    yards_per_carry = mean(rushing_yards) 
+  ) |>
+  filter(n > 100)
+
+#sorting by total ryoe
+ryoe_r_Q1 |>
+  arrange(-ryoe_total) |>
+  print()
+
+#sorting by ryoe_per
+ryoe_r_Q1 |>
+  filter(n > 100) |>
+  arrange(-ryoe_per) |>
+  print()
+
+#redoing the analysis from ch 3 to see if RYOE is a better metric than yards per carry
+
+#creating current df
+ryoe_now_r_Q1 <-
+  ryoe_r_Q1 |>
+  select(-n, -ryoe_total)
+
+#creating last years df and adding 1 to season
+ryoe_last_r_Q1 <-
+  ryoe_r_Q1 |>
+  select(-n, -ryoe_total) |>
+  mutate(season = season + 1) |>
+  rename(ryoe_per_last = ryoe_per,
+         yards_per_carry_last = yards_per_carry)
+ryoe_r_Q1
+ryoe_now_r_Q1
+ryoe_last_r_Q1
+
+#merging together
+ryoe_lag_r_Q1 <-
+  ryoe_now_r_Q1 |>
+  inner_join(ryoe_last_r_Q1,
+             by = c("rusher_id", "rusher", "season")) |>
+  ungroup()
+ryoe_lag_r_Q1
+
+#selecting the columns and examining the correlation
+ryoe_lag_r_Q1 |>
+  select(yards_per_carry, yards_per_carry_last) |>
+  cor(use = "complete.obs")
+
+ryoe_lag_r_Q1 |>
+  select(ryoe_per, ryoe_per_last) |>
+  cor(use = "complete.obs")
