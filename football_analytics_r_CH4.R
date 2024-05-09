@@ -166,7 +166,7 @@ plot(expected_yards_filter)
 summary(expected_yards_filter)
 
 
-### Excersises 
+### Exercises 
 #Question 1.
 #Change the carries threshold from 50 carries to 100 carries. Do you still see the same stability differences 
 #that you found in this chapter?
@@ -230,3 +230,14 @@ ryoe_lag_r_Q1 |>
 ryoe_lag_r_Q1 |>
   select(ryoe_per, ryoe_per_last) |>
   cor(use = "complete.obs")
+
+#Question 2. Inspect James Conner's RYOE values for his career relative to Bell's. What do you notice about the 
+#metric for both backs?
+# I notice that James Conner has a better RYOE total than Leveon Bell. That is good to know considering it was 
+# major controversy when the Steelers moved off from Bell in favor of James Conner. This now makes sense as
+# the following years Bell had declining RYOE while Conner had ups and downs but overall better RYOE compared to
+#Bell.
+
+filter(ryoe_r, rusher=='J.Conner')
+filter(ryoe_r, rusher=='L.Bell')
+
