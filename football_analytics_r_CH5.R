@@ -165,3 +165,42 @@ complete_global_r <-
       family = "binomial")
 complete_global_r |>
   tidy()
+
+### EXERCISES
+
+#Question 1.Repeat the analysis without qb_hit as one of the features. How does it change the leader board?
+
+#As can be seen below, the biggest thing I see is that QBs like Matt Ryan who had not as good offensive line play 
+# fall lower down the list when not accounting for QB hits as they have worse play due to that fact, but it is not
+#being taken into consideration.
+complete_more_r_Q1 <-
+  pbp_r_pass_no_miss |>
+  glm(formula = complete_pass ~ down * ydstogo + yardline_100 +
+        air_yards + pass_location,
+      family = "binomial")
+
+#calc CPOE
+pbp_r_pass_no_miss_Q1 <-
+  pbp_r_pass_no_miss |>
+  mutate(exp_completion = predict(complete_more_r_Q1, type = "resp"),
+         cpoe = complete_pass - exp_completion)
+
+#summarizing the data
+cpoe_more_r_Q1 <-
+  pbp_r_pass_no_miss_Q1 |>
+  group_by(season, passer_id, passer) |>
+  summarize(n = n(),
+            cpoe = mean(cpoe, na.rm = TRUE),
+            compl = mean(complete_pass),
+            exp_completion = mean(exp_completion),
+            .groups = "drop") |>
+  filter(n > 100)
+
+#print top 20 entries
+cpoe_more_r_Q1 |>
+  arrange(-cpoe) |>
+  print(n = 20)
+
+#Question 2. What other features could be added to the logistic regression model?
+#A lot could be added. Specifically I think the time it takes the QB to release the ball should be taken into 
+#account and the current personnel that is on the field should be taken into consideration.
