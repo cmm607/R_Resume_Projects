@@ -197,3 +197,37 @@ draft_r_use_pre2019 |>
   ) |>
   arrange(-DrAV_OE) |>
   print(n = Inf)
+
+##EXERCISES
+#Question 1. Change the web-scraping examples to different year ranges. Does an error come up? Why?
+#Yes, an error does come up. We already have a web_df and a web_df_clean so when the loop tries going back
+#to get the values for different year ranges it already has some of the names in that df that was created earlier.
+#I changed the name of those dfs and the loop worked fine as seen below.
+draft_r1 <- tibble()
+for (i in seq(from = 2000, to = 2020)) {
+  url <- paste0(
+    "https://www.pro-football-reference.com/years/",
+    i,
+    "/draft.htm"
+  )
+  web_data1 <-
+    read_html(url) |>
+    html_nodes(xpath = '//*[@id="drafts"]') |>
+    html_table()
+  
+  web_df1 <-
+    web_data[[1]]
+  
+  web_df_clean1 <-
+    web_df1 |>
+    janitor::row_to_names(row_number = 1) |>
+    janitor::clean_names(case = "none") |>
+    mutate(Season = i) |>
+    filter(Tm != "Tm") #remove any extra column headers
+  
+  draft_r1 <-
+    bind_rows(
+      draft_r1,
+      web_df_clean1
+    )
+}
