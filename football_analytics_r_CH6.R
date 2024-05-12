@@ -39,7 +39,7 @@ pbp_r_pass_td_y |>
   select(-passer, -passer_id) |>
   summary()
 
-#checking if Poisson distribution is reasonable by looking at a bar graph of the grequencies
+#checking if Poisson distribution is reasonable by looking at a bar graph of the frequencies
 #and comparing this with a Poisson distribution of the same mean - lambda
 pass_td_y_mean_r <-
   pbp_r_pass_td_y |>
@@ -205,3 +205,105 @@ glm_bal_td_r <-
       family = "poisson")
 print(tidy(glm_bal_td_r))
 print(tidy(glm_bal_td_r, exponentiate = TRUE))
+
+
+### EXERCISES
+#Question 1. What happens in the model for touchdown passes if you don't include the total for the game? Does it 
+#change any probabilities enough to recommend a bet on Mahomes?
+#When not accounting for the total line of the game, the probabilities for Mahomes to throw exactly 0, 1, or 2
+#touchdown passes all increased and had a sum of 66.8% which is greater than the threshold of 64.8% (-185) that
+#we would need to be confident enought to place a bet on the under of 2.5 touchdowns.
+
+#use poisson regression to model since we are assuming poisson distribution
+pass_fit_r_Q1 <-
+  glm(pass_td_y ~ pass_td_rate,
+      data = pbp_r_pass_td_y_geq10,
+      family = "poisson")
+
+pbp_r_pass_td_y_geq10_Q1 <-
+  pbp_r_pass_td_y_geq10 |>
+  ungroup() |>
+  mutate(exp_pass_td = predict(pass_fit_r_Q1, type = "response"))
+
+summary(pass_fit_r_Q1) |>
+  print()
+
+#poisson coefficients are on exponential scale, accessing model's parameters and taking exponential
+tidy(pass_fit_r_Q1, exponentiate = TRUE, conf.int = TRUE)
+
+#looking at mahomes from super bowl
+pbp_r_pass_td_y_geq10_Q1 |>
+  filter(passer == "P.Mahomes",
+         season == 2022, week ==22) |>
+  select(-pass_td_y, -n_passes, -passer_id, -week, -season, -n_games)
+
+#dpois() function gives the PMF (probability mass function) and ppois() gives the CDF (cumulative density function)
+pbp_r_pass_td_y_geq10_Q1 <-
+  pbp_r_pass_td_y_geq10_Q1 |>
+  mutate(
+    p_0_td = dpois(x = 0,
+                   lambda = exp_pass_td),
+    p_1_td = dpois(x = 1,
+                   lambda = exp_pass_td),
+    p_2_td = dpois(x = 2,
+                   lambda = exp_pass_td),
+    p_g2_td = ppois(q = 1,
+                    lambda = exp_pass_td,
+                    lower.tail = FALSE)
+  )
+
+#looking at outputs for mahomes going into super bowl
+pbp_r_pass_td_y_geq10_Q1 |>
+  filter(passer == "P.Mahomes", season == 2022, week == 22) |>
+  select(-pass_td_y, -n_games, -n_passes, -passer_id, -week, -season)
+
+#Question 2. What about Jalen Hurts in the Super Bowl, whose touchdown prop was 1.5 (-115 to the over and -115 to
+#the under)? Was there value in that market?
+#With the line set at -115 we would need to be at least 53.5% confident on either the under or over in order
+#to place a confident bet. Jalen Hurts' passing prop market did have value in the under 1.5 touchdown passes
+#with 56.3% confidence which exceeds the 54.5% threshold. The probability to have more than 1.5 touchdown passes
+#was 43.7% which is below the threshold required to place a bet.
+
+#use poisson regression to model since we are assuming poisson distribution
+pass_fit_r_Q2 <-
+  glm(pass_td_y ~ pass_td_rate + total_line,
+      data = pbp_r_pass_td_y_geq10,
+      family = "poisson")
+
+pbp_r_pass_td_y_geq10_Q2 <-
+  pbp_r_pass_td_y_geq10 |>
+  ungroup() |>
+  mutate(exp_pass_td = predict(pass_fit_r_Q2, type = "response"))
+
+summary(pass_fit_r_Q2) |>
+  print()
+
+#poisson coefficients are on exponential scale, accessing model's parameters and taking exponential
+tidy(pass_fit_r_Q2, exponentiate = TRUE, conf.int = TRUE)
+
+#looking at Hurts from super bowl
+pbp_r_pass_td_y_geq10_Q2 |>
+  filter(passer == "J.Hurts",
+         season == 2022, week ==22) |>
+  select(-pass_td_y, -n_passes, -passer_id, -week, -season, -n_games)
+
+#dpois() function gives the PMF (probability mass function) and ppois() gives the CDF (cumulative density function)
+pbp_r_pass_td_y_geq10_Q2 <-
+  pbp_r_pass_td_y_geq10_Q2 |>
+  mutate(
+    p_0_td = dpois(x = 0,
+                   lambda = exp_pass_td),
+    p_1_td = dpois(x = 1,
+                   lambda = exp_pass_td),
+    p_g1_td = ppois(q = 1,
+                    lambda = exp_pass_td,
+                    lower.tail = FALSE)
+  )
+
+#looking at outputs for Hurts going into super bowl
+pbp_r_pass_td_y_geq10_Q2 |>
+  filter(passer == "J.Hurts", season == 2022, week == 22) |>
+  select(-pass_td_y, -n_games, -n_passes, -passer_id, -week, -season)
+
+break_even_prob <- 115 / (100 + 115)
+break_even_prob
